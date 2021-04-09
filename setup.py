@@ -16,7 +16,7 @@ setuptools.setup(
     author="Andy Lu",
 
     package_dir={"": "cdk_emq"},
-    packages=setuptools.find_packages(where="cdk_emq"),
+    packages=setuptools.find_packages(where="emq_stack"),
 
     install_requires=[
         "aws-cdk.core",
