@@ -854,7 +854,7 @@
     "emqasgLaunchConfig824C6AC5": {
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Properties": {
-        "ImageId": "ami-0abda0ec1e1bdedc9",
+        "ImageId": "ami-06fd78dc2f0b69910",
         "InstanceType": {
           "Ref": "ec2instancetype"
         },
@@ -873,7 +873,7 @@
           }
         ],
         "UserData": {
-          "Fn::Base64": "#!/bin/bash"
+          "Fn::Base64": "#!/bin/bash\nwget https://github.com/emqx/emqx/releases/download/v4.3-rc.3/emqx-edge-ubuntu18.04-4.3-rc.3-amd64.deb\nsudo apt install ./emqx-edge-ubuntu18.04-4.3-rc.3-amd64.deb\nsudo emqx start"
         }
       },
       "DependsOn": [
