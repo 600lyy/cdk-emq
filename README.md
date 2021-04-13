@@ -36,4 +36,12 @@ command.
  * `cdk diff`        compare deployed stack with current state
  * `cdk docs`        open CDK documentation
 
+## Bastion Host SSH
+
+```
+$ eval "$(ssh-agent -s)"
+$ ssh-add -K name-of-your-key.pem
+$ ssh -A user@bastion_host_FQDN_or_public_IP
+```
+
 Enjoy!

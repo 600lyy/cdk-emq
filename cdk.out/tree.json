@@ -12,17 +12,17 @@
           "version": "1.97.0"
         }
       },
-      "emq-vpc": {
-        "id": "emq-vpc",
-        "path": "emq-vpc",
+      "emq-full-stack": {
+        "id": "emq-full-stack",
+        "path": "emq-full-stack",
         "children": {
           "VPC_EMQ": {
             "id": "VPC_EMQ",
-            "path": "emq-vpc/VPC_EMQ",
+            "path": "emq-full-stack/VPC_EMQ",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "emq-vpc/VPC_EMQ/Resource",
+                "path": "emq-full-stack/VPC_EMQ/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::EC2::VPC",
                   "aws:cdk:cloudformation:props": {
@@ -33,7 +33,7 @@
                     "tags": [
                       {
                         "key": "Name",
-                        "value": "emq-vpc/VPC_EMQ"
+                        "value": "emq-full-stack/VPC_EMQ"
                       }
                     ]
                   }
@@ -45,11 +45,11 @@
               },
               "PublicSubnet1": {
                 "id": "PublicSubnet1",
-                "path": "emq-vpc/VPC_EMQ/PublicSubnet1",
+                "path": "emq-full-stack/VPC_EMQ/PublicSubnet1",
                 "children": {
                   "Subnet": {
                     "id": "Subnet",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet1/Subnet",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet1/Subnet",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::Subnet",
                       "aws:cdk:cloudformation:props": {
@@ -70,7 +70,7 @@
                           },
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/PublicSubnet1"
+                            "value": "emq-full-stack/VPC_EMQ/PublicSubnet1"
                           }
                         ]
                       }
@@ -82,7 +82,7 @@
                   },
                   "Acl": {
                     "id": "Acl",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet1/Acl",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet1/Acl",
                     "constructInfo": {
                       "fqn": "@aws-cdk/core.Resource",
                       "version": "1.97.0"
@@ -90,7 +90,7 @@
                   },
                   "RouteTable": {
                     "id": "RouteTable",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet1/RouteTable",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet1/RouteTable",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::RouteTable",
                       "aws:cdk:cloudformation:props": {
@@ -100,7 +100,7 @@
                         "tags": [
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/PublicSubnet1"
+                            "value": "emq-full-stack/VPC_EMQ/PublicSubnet1"
                           }
                         ]
                       }
@@ -112,7 +112,7 @@
                   },
                   "RouteTableAssociation": {
                     "id": "RouteTableAssociation",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet1/RouteTableAssociation",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet1/RouteTableAssociation",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::SubnetRouteTableAssociation",
                       "aws:cdk:cloudformation:props": {
@@ -131,7 +131,7 @@
                   },
                   "DefaultRoute": {
                     "id": "DefaultRoute",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet1/DefaultRoute",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet1/DefaultRoute",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::Route",
                       "aws:cdk:cloudformation:props": {
@@ -151,7 +151,7 @@
                   },
                   "EIP": {
                     "id": "EIP",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet1/EIP",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet1/EIP",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::EIP",
                       "aws:cdk:cloudformation:props": {
@@ -159,7 +159,7 @@
                         "tags": [
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/PublicSubnet1"
+                            "value": "emq-full-stack/VPC_EMQ/PublicSubnet1"
                           }
                         ]
                       }
@@ -171,7 +171,7 @@
                   },
                   "NATGateway": {
                     "id": "NATGateway",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet1/NATGateway",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet1/NATGateway",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::NatGateway",
                       "aws:cdk:cloudformation:props": {
@@ -187,7 +187,7 @@
                         "tags": [
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/PublicSubnet1"
+                            "value": "emq-full-stack/VPC_EMQ/PublicSubnet1"
                           }
                         ]
                       }
@@ -205,11 +205,11 @@
               },
               "PublicSubnet2": {
                 "id": "PublicSubnet2",
-                "path": "emq-vpc/VPC_EMQ/PublicSubnet2",
+                "path": "emq-full-stack/VPC_EMQ/PublicSubnet2",
                 "children": {
                   "Subnet": {
                     "id": "Subnet",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet2/Subnet",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet2/Subnet",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::Subnet",
                       "aws:cdk:cloudformation:props": {
@@ -230,7 +230,7 @@
                           },
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/PublicSubnet2"
+                            "value": "emq-full-stack/VPC_EMQ/PublicSubnet2"
                           }
                         ]
                       }
@@ -242,7 +242,7 @@
                   },
                   "Acl": {
                     "id": "Acl",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet2/Acl",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet2/Acl",
                     "constructInfo": {
                       "fqn": "@aws-cdk/core.Resource",
                       "version": "1.97.0"
@@ -250,7 +250,7 @@
                   },
                   "RouteTable": {
                     "id": "RouteTable",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet2/RouteTable",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet2/RouteTable",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::RouteTable",
                       "aws:cdk:cloudformation:props": {
@@ -260,7 +260,7 @@
                         "tags": [
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/PublicSubnet2"
+                            "value": "emq-full-stack/VPC_EMQ/PublicSubnet2"
                           }
                         ]
                       }
@@ -272,7 +272,7 @@
                   },
                   "RouteTableAssociation": {
                     "id": "RouteTableAssociation",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet2/RouteTableAssociation",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet2/RouteTableAssociation",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::SubnetRouteTableAssociation",
                       "aws:cdk:cloudformation:props": {
@@ -291,7 +291,7 @@
                   },
                   "DefaultRoute": {
                     "id": "DefaultRoute",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet2/DefaultRoute",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet2/DefaultRoute",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::Route",
                       "aws:cdk:cloudformation:props": {
@@ -311,7 +311,7 @@
                   },
                   "EIP": {
                     "id": "EIP",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet2/EIP",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet2/EIP",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::EIP",
                       "aws:cdk:cloudformation:props": {
@@ -319,7 +319,7 @@
                         "tags": [
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/PublicSubnet2"
+                            "value": "emq-full-stack/VPC_EMQ/PublicSubnet2"
                           }
                         ]
                       }
@@ -331,7 +331,7 @@
                   },
                   "NATGateway": {
                     "id": "NATGateway",
-                    "path": "emq-vpc/VPC_EMQ/PublicSubnet2/NATGateway",
+                    "path": "emq-full-stack/VPC_EMQ/PublicSubnet2/NATGateway",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::NatGateway",
                       "aws:cdk:cloudformation:props": {
@@ -347,7 +347,7 @@
                         "tags": [
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/PublicSubnet2"
+                            "value": "emq-full-stack/VPC_EMQ/PublicSubnet2"
                           }
                         ]
                       }
@@ -365,11 +365,11 @@
               },
               "PrivateSubnet1": {
                 "id": "PrivateSubnet1",
-                "path": "emq-vpc/VPC_EMQ/PrivateSubnet1",
+                "path": "emq-full-stack/VPC_EMQ/PrivateSubnet1",
                 "children": {
                   "Subnet": {
                     "id": "Subnet",
-                    "path": "emq-vpc/VPC_EMQ/PrivateSubnet1/Subnet",
+                    "path": "emq-full-stack/VPC_EMQ/PrivateSubnet1/Subnet",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::Subnet",
                       "aws:cdk:cloudformation:props": {
@@ -390,7 +390,7 @@
                           },
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/PrivateSubnet1"
+                            "value": "emq-full-stack/VPC_EMQ/PrivateSubnet1"
                           }
                         ]
                       }
@@ -402,7 +402,7 @@
                   },
                   "Acl": {
                     "id": "Acl",
-                    "path": "emq-vpc/VPC_EMQ/PrivateSubnet1/Acl",
+                    "path": "emq-full-stack/VPC_EMQ/PrivateSubnet1/Acl",
                     "constructInfo": {
                       "fqn": "@aws-cdk/core.Resource",
                       "version": "1.97.0"
@@ -410,7 +410,7 @@
                   },
                   "RouteTable": {
                     "id": "RouteTable",
-                    "path": "emq-vpc/VPC_EMQ/PrivateSubnet1/RouteTable",
+                    "path": "emq-full-stack/VPC_EMQ/PrivateSubnet1/RouteTable",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::RouteTable",
                       "aws:cdk:cloudformation:props": {
@@ -420,7 +420,7 @@
                         "tags": [
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/PrivateSubnet1"
+                            "value": "emq-full-stack/VPC_EMQ/PrivateSubnet1"
                           }
                         ]
                       }
@@ -432,7 +432,7 @@
                   },
                   "RouteTableAssociation": {
                     "id": "RouteTableAssociation",
-                    "path": "emq-vpc/VPC_EMQ/PrivateSubnet1/RouteTableAssociation",
+                    "path": "emq-full-stack/VPC_EMQ/PrivateSubnet1/RouteTableAssociation",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::SubnetRouteTableAssociation",
                       "aws:cdk:cloudformation:props": {
@@ -451,7 +451,7 @@
                   },
                   "DefaultRoute": {
                     "id": "DefaultRoute",
-                    "path": "emq-vpc/VPC_EMQ/PrivateSubnet1/DefaultRoute",
+                    "path": "emq-full-stack/VPC_EMQ/PrivateSubnet1/DefaultRoute",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::Route",
                       "aws:cdk:cloudformation:props": {
@@ -477,11 +477,11 @@
               },
               "PrivateSubnet2": {
                 "id": "PrivateSubnet2",
-                "path": "emq-vpc/VPC_EMQ/PrivateSubnet2",
+                "path": "emq-full-stack/VPC_EMQ/PrivateSubnet2",
                 "children": {
                   "Subnet": {
                     "id": "Subnet",
-                    "path": "emq-vpc/VPC_EMQ/PrivateSubnet2/Subnet",
+                    "path": "emq-full-stack/VPC_EMQ/PrivateSubnet2/Subnet",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::Subnet",
                       "aws:cdk:cloudformation:props": {
@@ -502,7 +502,7 @@
                           },
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/PrivateSubnet2"
+                            "value": "emq-full-stack/VPC_EMQ/PrivateSubnet2"
                           }
                         ]
                       }
@@ -514,7 +514,7 @@
                   },
                   "Acl": {
                     "id": "Acl",
-                    "path": "emq-vpc/VPC_EMQ/PrivateSubnet2/Acl",
+                    "path": "emq-full-stack/VPC_EMQ/PrivateSubnet2/Acl",
                     "constructInfo": {
                       "fqn": "@aws-cdk/core.Resource",
                       "version": "1.97.0"
@@ -522,7 +522,7 @@
                   },
                   "RouteTable": {
                     "id": "RouteTable",
-                    "path": "emq-vpc/VPC_EMQ/PrivateSubnet2/RouteTable",
+                    "path": "emq-full-stack/VPC_EMQ/PrivateSubnet2/RouteTable",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::RouteTable",
                       "aws:cdk:cloudformation:props": {
@@ -532,7 +532,7 @@
                         "tags": [
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/PrivateSubnet2"
+                            "value": "emq-full-stack/VPC_EMQ/PrivateSubnet2"
                           }
                         ]
                       }
@@ -544,7 +544,7 @@
                   },
                   "RouteTableAssociation": {
                     "id": "RouteTableAssociation",
-                    "path": "emq-vpc/VPC_EMQ/PrivateSubnet2/RouteTableAssociation",
+                    "path": "emq-full-stack/VPC_EMQ/PrivateSubnet2/RouteTableAssociation",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::SubnetRouteTableAssociation",
                       "aws:cdk:cloudformation:props": {
@@ -563,7 +563,7 @@
                   },
                   "DefaultRoute": {
                     "id": "DefaultRoute",
-                    "path": "emq-vpc/VPC_EMQ/PrivateSubnet2/DefaultRoute",
+                    "path": "emq-full-stack/VPC_EMQ/PrivateSubnet2/DefaultRoute",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::Route",
                       "aws:cdk:cloudformation:props": {
@@ -589,11 +589,11 @@
               },
               "DBSubnet1": {
                 "id": "DBSubnet1",
-                "path": "emq-vpc/VPC_EMQ/DBSubnet1",
+                "path": "emq-full-stack/VPC_EMQ/DBSubnet1",
                 "children": {
                   "Subnet": {
                     "id": "Subnet",
-                    "path": "emq-vpc/VPC_EMQ/DBSubnet1/Subnet",
+                    "path": "emq-full-stack/VPC_EMQ/DBSubnet1/Subnet",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::Subnet",
                       "aws:cdk:cloudformation:props": {
@@ -614,7 +614,7 @@
                           },
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/DBSubnet1"
+                            "value": "emq-full-stack/VPC_EMQ/DBSubnet1"
                           }
                         ]
                       }
@@ -626,7 +626,7 @@
                   },
                   "Acl": {
                     "id": "Acl",
-                    "path": "emq-vpc/VPC_EMQ/DBSubnet1/Acl",
+                    "path": "emq-full-stack/VPC_EMQ/DBSubnet1/Acl",
                     "constructInfo": {
                       "fqn": "@aws-cdk/core.Resource",
                       "version": "1.97.0"
@@ -634,7 +634,7 @@
                   },
                   "RouteTable": {
                     "id": "RouteTable",
-                    "path": "emq-vpc/VPC_EMQ/DBSubnet1/RouteTable",
+                    "path": "emq-full-stack/VPC_EMQ/DBSubnet1/RouteTable",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::RouteTable",
                       "aws:cdk:cloudformation:props": {
@@ -644,7 +644,7 @@
                         "tags": [
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/DBSubnet1"
+                            "value": "emq-full-stack/VPC_EMQ/DBSubnet1"
                           }
                         ]
                       }
@@ -656,7 +656,7 @@
                   },
                   "RouteTableAssociation": {
                     "id": "RouteTableAssociation",
-                    "path": "emq-vpc/VPC_EMQ/DBSubnet1/RouteTableAssociation",
+                    "path": "emq-full-stack/VPC_EMQ/DBSubnet1/RouteTableAssociation",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::SubnetRouteTableAssociation",
                       "aws:cdk:cloudformation:props": {
@@ -681,11 +681,11 @@
               },
               "DBSubnet2": {
                 "id": "DBSubnet2",
-                "path": "emq-vpc/VPC_EMQ/DBSubnet2",
+                "path": "emq-full-stack/VPC_EMQ/DBSubnet2",
                 "children": {
                   "Subnet": {
                     "id": "Subnet",
-                    "path": "emq-vpc/VPC_EMQ/DBSubnet2/Subnet",
+                    "path": "emq-full-stack/VPC_EMQ/DBSubnet2/Subnet",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::Subnet",
                       "aws:cdk:cloudformation:props": {
@@ -706,7 +706,7 @@
                           },
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/DBSubnet2"
+                            "value": "emq-full-stack/VPC_EMQ/DBSubnet2"
                           }
                         ]
                       }
@@ -718,7 +718,7 @@
                   },
                   "Acl": {
                     "id": "Acl",
-                    "path": "emq-vpc/VPC_EMQ/DBSubnet2/Acl",
+                    "path": "emq-full-stack/VPC_EMQ/DBSubnet2/Acl",
                     "constructInfo": {
                       "fqn": "@aws-cdk/core.Resource",
                       "version": "1.97.0"
@@ -726,7 +726,7 @@
                   },
                   "RouteTable": {
                     "id": "RouteTable",
-                    "path": "emq-vpc/VPC_EMQ/DBSubnet2/RouteTable",
+                    "path": "emq-full-stack/VPC_EMQ/DBSubnet2/RouteTable",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::RouteTable",
                       "aws:cdk:cloudformation:props": {
@@ -736,7 +736,7 @@
                         "tags": [
                           {
                             "key": "Name",
-                            "value": "emq-vpc/VPC_EMQ/DBSubnet2"
+                            "value": "emq-full-stack/VPC_EMQ/DBSubnet2"
                           }
                         ]
                       }
@@ -748,7 +748,7 @@
                   },
                   "RouteTableAssociation": {
                     "id": "RouteTableAssociation",
-                    "path": "emq-vpc/VPC_EMQ/DBSubnet2/RouteTableAssociation",
+                    "path": "emq-full-stack/VPC_EMQ/DBSubnet2/RouteTableAssociation",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::SubnetRouteTableAssociation",
                       "aws:cdk:cloudformation:props": {
@@ -773,14 +773,14 @@
               },
               "IGW": {
                 "id": "IGW",
-                "path": "emq-vpc/VPC_EMQ/IGW",
+                "path": "emq-full-stack/VPC_EMQ/IGW",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::EC2::InternetGateway",
                   "aws:cdk:cloudformation:props": {
                     "tags": [
                       {
                         "key": "Name",
-                        "value": "emq-vpc/VPC_EMQ"
+                        "value": "emq-full-stack/VPC_EMQ"
                       }
                     ]
                   }
@@ -792,7 +792,7 @@
               },
               "VPCGW": {
                 "id": "VPCGW",
-                "path": "emq-vpc/VPC_EMQ/VPCGW",
+                "path": "emq-full-stack/VPC_EMQ/VPCGW",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::EC2::VPCGatewayAttachment",
                   "aws:cdk:cloudformation:props": {
@@ -815,111 +815,41 @@
               "version": "1.97.0"
             }
           },
-          "Output": {
-            "id": "Output",
-            "path": "emq-vpc/Output",
+          "ec2-instance-type": {
+            "id": "ec2-instance-type",
+            "path": "emq-full-stack/ec2-instance-type",
             "constructInfo": {
-              "fqn": "@aws-cdk/core.CfnOutput",
+              "fqn": "@aws-cdk/core.CfnParameter",
               "version": "1.97.0"
             }
           },
-          "CDKMetadata": {
-            "id": "CDKMetadata",
-            "path": "emq-vpc/CDKMetadata",
-            "children": {
-              "Default": {
-                "id": "Default",
-                "path": "emq-vpc/CDKMetadata/Default",
-                "constructInfo": {
-                  "fqn": "@aws-cdk/core.CfnResource",
-                  "version": "1.97.0"
-                }
-              }
-            },
+          "ssh key": {
+            "id": "ssh key",
+            "path": "emq-full-stack/ssh key",
             "constructInfo": {
-              "fqn": "@aws-cdk/core.Construct",
+              "fqn": "@aws-cdk/core.CfnParameter",
               "version": "1.97.0"
             }
           },
-          "Exports": {
-            "id": "Exports",
-            "path": "emq-vpc/Exports",
-            "children": {
-              "Output{\"Ref\":\"VPCEMQCEBDB0FA\"}": {
-                "id": "Output{\"Ref\":\"VPCEMQCEBDB0FA\"}",
-                "path": "emq-vpc/Exports/Output{\"Ref\":\"VPCEMQCEBDB0FA\"}",
-                "constructInfo": {
-                  "fqn": "@aws-cdk/core.CfnOutput",
-                  "version": "1.97.0"
-                }
-              },
-              "Output{\"Ref\":\"VPCEMQPublicSubnet1SubnetE79D6ABB\"}": {
-                "id": "Output{\"Ref\":\"VPCEMQPublicSubnet1SubnetE79D6ABB\"}",
-                "path": "emq-vpc/Exports/Output{\"Ref\":\"VPCEMQPublicSubnet1SubnetE79D6ABB\"}",
-                "constructInfo": {
-                  "fqn": "@aws-cdk/core.CfnOutput",
-                  "version": "1.97.0"
-                }
-              },
-              "Output{\"Ref\":\"VPCEMQPublicSubnet2Subnet31783A68\"}": {
-                "id": "Output{\"Ref\":\"VPCEMQPublicSubnet2Subnet31783A68\"}",
-                "path": "emq-vpc/Exports/Output{\"Ref\":\"VPCEMQPublicSubnet2Subnet31783A68\"}",
-                "constructInfo": {
-                  "fqn": "@aws-cdk/core.CfnOutput",
-                  "version": "1.97.0"
-                }
-              },
-              "Output{\"Ref\":\"VPCEMQPrivateSubnet1Subnet25FF7A57\"}": {
-                "id": "Output{\"Ref\":\"VPCEMQPrivateSubnet1Subnet25FF7A57\"}",
-                "path": "emq-vpc/Exports/Output{\"Ref\":\"VPCEMQPrivateSubnet1Subnet25FF7A57\"}",
-                "constructInfo": {
-                  "fqn": "@aws-cdk/core.CfnOutput",
-                  "version": "1.97.0"
-                }
-              },
-              "Output{\"Ref\":\"VPCEMQPrivateSubnet2Subnet265B9CEA\"}": {
-                "id": "Output{\"Ref\":\"VPCEMQPrivateSubnet2Subnet265B9CEA\"}",
-                "path": "emq-vpc/Exports/Output{\"Ref\":\"VPCEMQPrivateSubnet2Subnet265B9CEA\"}",
-                "constructInfo": {
-                  "fqn": "@aws-cdk/core.CfnOutput",
-                  "version": "1.97.0"
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "@aws-cdk/core.Construct",
-              "version": "1.97.0"
-            }
-          }
-        },
-        "constructInfo": {
-          "fqn": "@aws-cdk/core.Stack",
-          "version": "1.97.0"
-        }
-      },
-      "emq-ec2": {
-        "id": "emq-ec2",
-        "path": "emq-ec2",
-        "children": {
           "Bastion": {
             "id": "Bastion",
-            "path": "emq-ec2/Bastion",
+            "path": "emq-full-stack/Bastion",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "emq-ec2/Bastion/Resource",
+                "path": "emq-full-stack/Bastion/Resource",
                 "children": {
                   "InstanceSecurityGroup": {
                     "id": "InstanceSecurityGroup",
-                    "path": "emq-ec2/Bastion/Resource/InstanceSecurityGroup",
+                    "path": "emq-full-stack/Bastion/Resource/InstanceSecurityGroup",
                     "children": {
                       "Resource": {
                         "id": "Resource",
-                        "path": "emq-ec2/Bastion/Resource/InstanceSecurityGroup/Resource",
+                        "path": "emq-full-stack/Bastion/Resource/InstanceSecurityGroup/Resource",
                         "attributes": {
                           "aws:cdk:cloudformation:type": "AWS::EC2::SecurityGroup",
                           "aws:cdk:cloudformation:props": {
-                            "groupDescription": "emq-ec2/Bastion/Resource/InstanceSecurityGroup",
+                            "groupDescription": "emq-full-stack/Bastion/Resource/InstanceSecurityGroup",
                             "securityGroupEgress": [
                               {
                                 "cidrIp": "0.0.0.0/0",
@@ -943,7 +873,7 @@
                               }
                             ],
                             "vpcId": {
-                              "Fn::ImportValue": "emq-vpc:ExportsOutputRefVPCEMQCEBDB0FA837D856C"
+                              "Ref": "VPCEMQCEBDB0FA"
                             }
                           }
                         },
@@ -960,11 +890,11 @@
                   },
                   "InstanceRole": {
                     "id": "InstanceRole",
-                    "path": "emq-ec2/Bastion/Resource/InstanceRole",
+                    "path": "emq-full-stack/Bastion/Resource/InstanceRole",
                     "children": {
                       "Resource": {
                         "id": "Resource",
-                        "path": "emq-ec2/Bastion/Resource/InstanceRole/Resource",
+                        "path": "emq-full-stack/Bastion/Resource/InstanceRole/Resource",
                         "attributes": {
                           "aws:cdk:cloudformation:type": "AWS::IAM::Role",
                           "aws:cdk:cloudformation:props": {
@@ -995,11 +925,11 @@
                       },
                       "DefaultPolicy": {
                         "id": "DefaultPolicy",
-                        "path": "emq-ec2/Bastion/Resource/InstanceRole/DefaultPolicy",
+                        "path": "emq-full-stack/Bastion/Resource/InstanceRole/DefaultPolicy",
                         "children": {
                           "Resource": {
                             "id": "Resource",
-                            "path": "emq-ec2/Bastion/Resource/InstanceRole/DefaultPolicy/Resource",
+                            "path": "emq-full-stack/Bastion/Resource/InstanceRole/DefaultPolicy/Resource",
                             "attributes": {
                               "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
                               "aws:cdk:cloudformation:props": {
@@ -1044,7 +974,7 @@
                   },
                   "InstanceProfile": {
                     "id": "InstanceProfile",
-                    "path": "emq-ec2/Bastion/Resource/InstanceProfile",
+                    "path": "emq-full-stack/Bastion/Resource/InstanceProfile",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::IAM::InstanceProfile",
                       "aws:cdk:cloudformation:props": {
@@ -1062,7 +992,7 @@
                   },
                   "Resource": {
                     "id": "Resource",
-                    "path": "emq-ec2/Bastion/Resource/Resource",
+                    "path": "emq-full-stack/Bastion/Resource/Resource",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::Instance",
                       "aws:cdk:cloudformation:props": {
@@ -1083,7 +1013,7 @@
                           }
                         ],
                         "subnetId": {
-                          "Fn::ImportValue": "emq-vpc:ExportsOutputRefVPCEMQPublicSubnet1SubnetE79D6ABB31F0EBCE"
+                          "Ref": "VPCEMQPublicSubnet1SubnetE79D6ABB"
                         },
                         "tags": [
                           {
@@ -1109,7 +1039,7 @@
               },
               "BastionHostId": {
                 "id": "BastionHostId",
-                "path": "emq-ec2/Bastion/BastionHostId",
+                "path": "emq-full-stack/Bastion/BastionHostId",
                 "constructInfo": {
                   "fqn": "@aws-cdk/core.CfnOutput",
                   "version": "1.97.0"
@@ -1123,7 +1053,7 @@
           },
           "SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118.Parameter": {
             "id": "SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118.Parameter",
-            "path": "emq-ec2/SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118.Parameter",
+            "path": "emq-full-stack/SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118.Parameter",
             "constructInfo": {
               "fqn": "@aws-cdk/core.CfnParameter",
               "version": "1.97.0"
@@ -1131,7 +1061,7 @@
           },
           "SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118": {
             "id": "SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118",
-            "path": "emq-ec2/SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118",
+            "path": "emq-full-stack/SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118",
             "constructInfo": {
               "fqn": "@aws-cdk/core.Resource",
               "version": "1.97.0"
@@ -1139,11 +1069,11 @@
           },
           "emq-elb": {
             "id": "emq-elb",
-            "path": "emq-ec2/emq-elb",
+            "path": "emq-full-stack/emq-elb",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "emq-ec2/emq-elb/Resource",
+                "path": "emq-full-stack/emq-elb/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
                   "aws:cdk:cloudformation:props": {
@@ -1161,10 +1091,10 @@
                     "scheme": "internet-facing",
                     "subnets": [
                       {
-                        "Fn::ImportValue": "emq-vpc:ExportsOutputRefVPCEMQPublicSubnet1SubnetE79D6ABB31F0EBCE"
+                        "Ref": "VPCEMQPublicSubnet1SubnetE79D6ABB"
                       },
                       {
-                        "Fn::ImportValue": "emq-vpc:ExportsOutputRefVPCEMQPublicSubnet2Subnet31783A68123139C5"
+                        "Ref": "VPCEMQPublicSubnet2Subnet31783A68"
                       }
                     ],
                     "type": "network"
@@ -1177,11 +1107,11 @@
               },
               "port1883": {
                 "id": "port1883",
-                "path": "emq-ec2/emq-elb/port1883",
+                "path": "emq-full-stack/emq-elb/port1883",
                 "children": {
                   "Resource": {
                     "id": "Resource",
-                    "path": "emq-ec2/emq-elb/port1883/Resource",
+                    "path": "emq-full-stack/emq-elb/port1883/Resource",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::ElasticLoadBalancingV2::Listener",
                       "aws:cdk:cloudformation:props": {
@@ -1207,11 +1137,11 @@
                   },
                   "addTargetGroupGroup": {
                     "id": "addTargetGroupGroup",
-                    "path": "emq-ec2/emq-elb/port1883/addTargetGroupGroup",
+                    "path": "emq-full-stack/emq-elb/port1883/addTargetGroupGroup",
                     "children": {
                       "Resource": {
                         "id": "Resource",
-                        "path": "emq-ec2/emq-elb/port1883/addTargetGroupGroup/Resource",
+                        "path": "emq-full-stack/emq-elb/port1883/addTargetGroupGroup/Resource",
                         "attributes": {
                           "aws:cdk:cloudformation:type": "AWS::ElasticLoadBalancingV2::TargetGroup",
                           "aws:cdk:cloudformation:props": {
@@ -1219,7 +1149,7 @@
                             "protocol": "TCP",
                             "targetType": "instance",
                             "vpcId": {
-                              "Fn::ImportValue": "emq-vpc:ExportsOutputRefVPCEMQCEBDB0FA837D856C"
+                              "Ref": "VPCEMQCEBDB0FA"
                             }
                           }
                         },
@@ -1248,19 +1178,19 @@
           },
           "emq-asg": {
             "id": "emq-asg",
-            "path": "emq-ec2/emq-asg",
+            "path": "emq-full-stack/emq-asg",
             "children": {
               "InstanceSecurityGroup": {
                 "id": "InstanceSecurityGroup",
-                "path": "emq-ec2/emq-asg/InstanceSecurityGroup",
+                "path": "emq-full-stack/emq-asg/InstanceSecurityGroup",
                 "children": {
                   "Resource": {
                     "id": "Resource",
-                    "path": "emq-ec2/emq-asg/InstanceSecurityGroup/Resource",
+                    "path": "emq-full-stack/emq-asg/InstanceSecurityGroup/Resource",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::SecurityGroup",
                       "aws:cdk:cloudformation:props": {
-                        "groupDescription": "emq-ec2/emq-asg/InstanceSecurityGroup",
+                        "groupDescription": "emq-full-stack/emq-asg/InstanceSecurityGroup",
                         "securityGroupEgress": [
                           {
                             "cidrIp": "0.0.0.0/0",
@@ -1280,11 +1210,11 @@
                         "tags": [
                           {
                             "key": "Name",
-                            "value": "emq-ec2/emq-asg"
+                            "value": "emq-full-stack/emq-asg"
                           }
                         ],
                         "vpcId": {
-                          "Fn::ImportValue": "emq-vpc:ExportsOutputRefVPCEMQCEBDB0FA837D856C"
+                          "Ref": "VPCEMQCEBDB0FA"
                         }
                       }
                     },
@@ -1293,9 +1223,9 @@
                       "version": "1.97.0"
                     }
                   },
-                  "from emqec2BastionInstanceSecurityGroup0185A245:22": {
-                    "id": "from emqec2BastionInstanceSecurityGroup0185A245:22",
-                    "path": "emq-ec2/emq-asg/InstanceSecurityGroup/from emqec2BastionInstanceSecurityGroup0185A245:22",
+                  "from emqfullstackBastionInstanceSecurityGroupCFDB19AC:22": {
+                    "id": "from emqfullstackBastionInstanceSecurityGroupCFDB19AC:22",
+                    "path": "emq-full-stack/emq-asg/InstanceSecurityGroup/from emqfullstackBastionInstanceSecurityGroupCFDB19AC:22",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::EC2::SecurityGroupIngress",
                       "aws:cdk:cloudformation:props": {
@@ -1330,11 +1260,11 @@
               },
               "InstanceRole": {
                 "id": "InstanceRole",
-                "path": "emq-ec2/emq-asg/InstanceRole",
+                "path": "emq-full-stack/emq-asg/InstanceRole",
                 "children": {
                   "Resource": {
                     "id": "Resource",
-                    "path": "emq-ec2/emq-asg/InstanceRole/Resource",
+                    "path": "emq-full-stack/emq-asg/InstanceRole/Resource",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::IAM::Role",
                       "aws:cdk:cloudformation:props": {
@@ -1353,7 +1283,7 @@
                         "tags": [
                           {
                             "key": "Name",
-                            "value": "emq-ec2/emq-asg"
+                            "value": "emq-full-stack/emq-asg"
                           }
                         ]
                       }
@@ -1371,7 +1301,7 @@
               },
               "InstanceProfile": {
                 "id": "InstanceProfile",
-                "path": "emq-ec2/emq-asg/InstanceProfile",
+                "path": "emq-full-stack/emq-asg/InstanceProfile",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::InstanceProfile",
                   "aws:cdk:cloudformation:props": {
@@ -1389,16 +1319,20 @@
               },
               "LaunchConfig": {
                 "id": "LaunchConfig",
-                "path": "emq-ec2/emq-asg/LaunchConfig",
+                "path": "emq-full-stack/emq-asg/LaunchConfig",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::AutoScaling::LaunchConfiguration",
                   "aws:cdk:cloudformation:props": {
                     "imageId": "ami-0abda0ec1e1bdedc9",
-                    "instanceType": "t2.micro",
+                    "instanceType": {
+                      "Ref": "ec2instancetype"
+                    },
                     "iamInstanceProfile": {
                       "Ref": "emqasgInstanceProfileB7BABE6C"
                     },
-                    "keyName": "key_ireland",
+                    "keyName": {
+                      "Ref": "sshkey"
+                    },
                     "securityGroups": [
                       {
                         "Fn::GetAtt": [
@@ -1419,20 +1353,22 @@
               },
               "ASG": {
                 "id": "ASG",
-                "path": "emq-ec2/emq-asg/ASG",
+                "path": "emq-full-stack/emq-asg/ASG",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::AutoScaling::AutoScalingGroup",
                   "aws:cdk:cloudformation:props": {
                     "maxSize": "4",
                     "minSize": "2",
                     "desiredCapacity": "2",
+                    "healthCheckGracePeriod": 60,
+                    "healthCheckType": "ELB",
                     "launchConfigurationName": {
                       "Ref": "emqasgLaunchConfig824C6AC5"
                     },
                     "tags": [
                       {
                         "key": "Name",
-                        "value": "emq-ec2/emq-asg",
+                        "value": "emq-full-stack/emq-asg",
                         "propagateAtLaunch": true
                       }
                     ],
@@ -1443,10 +1379,10 @@
                     ],
                     "vpcZoneIdentifier": [
                       {
-                        "Fn::ImportValue": "emq-vpc:ExportsOutputRefVPCEMQPrivateSubnet1Subnet25FF7A5786E8FBC1"
+                        "Ref": "VPCEMQPrivateSubnet1Subnet25FF7A57"
                       },
                       {
-                        "Fn::ImportValue": "emq-vpc:ExportsOutputRefVPCEMQPrivateSubnet2Subnet265B9CEACAAB93FF"
+                        "Ref": "VPCEMQPrivateSubnet2Subnet265B9CEA"
                       }
                     ]
                   }
@@ -1464,7 +1400,7 @@
           },
           "Output": {
             "id": "Output",
-            "path": "emq-ec2/Output",
+            "path": "emq-full-stack/Output",
             "constructInfo": {
               "fqn": "@aws-cdk/core.CfnOutput",
               "version": "1.97.0"
@@ -1472,11 +1408,11 @@
           },
           "CDKMetadata": {
             "id": "CDKMetadata",
-            "path": "emq-ec2/CDKMetadata",
+            "path": "emq-full-stack/CDKMetadata",
             "children": {
               "Default": {
                 "id": "Default",
-                "path": "emq-ec2/CDKMetadata/Default",
+                "path": "emq-full-stack/CDKMetadata/Default",
                 "constructInfo": {
                   "fqn": "@aws-cdk/core.CfnResource",
                   "version": "1.97.0"

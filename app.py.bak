@@ -4,11 +4,15 @@ from aws_cdk import core
 
 from emq_stack.cdk_vpc_stack import CdkVpcStack
 from emq_stack.cdk_ec2_stack import CdkEc2Stack
+from emq_stack.cdk_rds_stack import CdkRdsStack
 from emq_stack import AWS_ENV
 
 
 app = core.App()
 vpc_stack = CdkVpcStack(app, "emq-vpc", env=AWS_ENV)
 ec2_stack = CdkEc2Stack(app, "emq-ec2", vpc=vpc_stack.vpc, env=AWS_ENV)
+rds_stack = CdkRdsStack(app, "emq-mysql",
+    vpc=vpc_stack.vpc,
+    asg_security_groups=ec2_stack.asg.connections.security_groups)
 
 app.synth()

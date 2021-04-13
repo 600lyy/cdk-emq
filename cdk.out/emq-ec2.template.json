@@ -1,4 +1,20 @@
 {
+  "Parameters": {
+    "ec2instancetype": {
+      "Type": "String",
+      "Default": "t2.micro",
+      "Description": "Specify the instance type you want"
+    },
+    "sshkey": {
+      "Type": "String",
+      "Default": "key_ireland",
+      "Description": "Specify your SSH key"
+    },
+    "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+      "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+    }
+  },
   "Resources": {
     "BastionInstanceSecurityGroup71C3847E": {
       "Type": "AWS::EC2::SecurityGroup",
@@ -112,7 +128,9 @@
           "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter"
         },
         "InstanceType": "t2.micro",
-        "KeyName": "key_ireland",
+        "KeyName": {
+          "Ref": "sshkey"
+        },
         "SecurityGroupIds": [
           {
             "Fn::GetAtt": [
@@ -307,11 +325,15 @@
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Properties": {
         "ImageId": "ami-0abda0ec1e1bdedc9",
-        "InstanceType": "t2.micro",
+        "InstanceType": {
+          "Ref": "ec2instancetype"
+        },
         "IamInstanceProfile": {
           "Ref": "emqasgInstanceProfileB7BABE6C"
         },
-        "KeyName": "key_ireland",
+        "KeyName": {
+          "Ref": "sshkey"
+        },
         "SecurityGroups": [
           {
             "Fn::GetAtt": [
@@ -337,6 +359,8 @@
         "MaxSize": "4",
         "MinSize": "2",
         "DesiredCapacity": "2",
+        "HealthCheckGracePeriod": 60,
+        "HealthCheckType": "ELB",
         "LaunchConfigurationName": {
           "Ref": "emqasgLaunchConfig824C6AC5"
         },
@@ -373,7 +397,7 @@
     "CDKMetadata": {
       "Type": "AWS::CDK::Metadata",
       "Properties": {
-        "Analytics": "v2:deflate64:H4sIAAAAAAAAA2VQzW7CMAx+Fu4h7OeAuG1wYEhoq+hewAumZA0xcpwxFPXdlxZabewUfz92Pvtez6b6bvQEpzA223qSDDHqVAqYWi12/i3KMUpbFcBwQEFWGwwU2aBakA/C0XR6zzaqnZXQPOg0hyCW/AsFWVsfv9UqN4DPrSWayFbOS6Z4bNv/EYP1Vlz5ijGERlk46LQh11m6tyBnzblLO1T9nIJpZ12Oh65NZRzB9gNclqyvvnLYV5QTcb3O/Lzj86q5/w/uPTYI+qve11ftHbhCGdb4BfNlolAw4PKPOj1nUF7A4F5D9Gaf77qzVWRoj9fSt9amaVRxlj35yaOe6tnoM1g75ujFHlBvLu8P9E62CtsBAAA="
+        "Analytics": "v2:deflate64:H4sIAAAAAAAAA2VQzW7CMAx+Fu4h7OeAuG1wYEjVVpW9gBdMyQgxcpwxVPXdlxRabewUfz92Pvtez6b6bvQEpzA2m/2kMcSom7WA2avF1pfAcEBBzuAtyjGKqjBQZINqQT4IRyNZ7NlW5VkNmgfdzCGIJf9CQQrr47dapQbwqXWNJrKV85IpHnP7P2Kw3oorXzOG0CoLB91U5DpL95bkrDl3uYeqn1Myba1L8dDlVMYRbD7AJcn6+iuFfUU5Ee+LxM87/rL0H9x7bBD0V72vr9o7cI0yrPELpstEoWDApR9185zA+gIGdwHRm12669bWkSEfL9O31rZtVXmWHfnJo57q2egzWDvm6MUeUFeX9wcI8Vh42wEAAA=="
       },
       "Metadata": {
         "aws:cdk:path": "emq-ec2/CDKMetadata/Default"
@@ -394,12 +418,6 @@
           "DNSName"
         ]
       }
-    }
-  },
-  "Parameters": {
-    "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter": {
-      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
-      "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
     }
   }
 }
