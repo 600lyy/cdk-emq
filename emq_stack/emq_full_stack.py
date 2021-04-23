@@ -53,7 +53,6 @@ class EmqFullStack(core.Stack):
         key_name = CfnParameter(self, "ssh key",
             type="String", default="key_ireland",
             description="Specify your SSH key").value_as_string
-    
          # Create Bastion Server
         bastion = ec2.BastionHostLinux(self, "Bastion",
             vpc=vpc,
@@ -88,6 +87,12 @@ class EmqFullStack(core.Stack):
             min_capacity=2,
             max_capacity=4
             )
+
+        user_defined_tags = self.node.try_get_context("tags")
+
+        if user_defined_tags:
+            tags = user_defined_tags.split(' ')
+            core.Tags.of(asg).add(*tags)
 
         # NLB cannot associate with a security group therefore NLB object has no Connection object
         # Must modify manuall inbound rule of the newly created asg security group to allow access
