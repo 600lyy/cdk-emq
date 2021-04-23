@@ -94,7 +94,19 @@ class EmqFullStack(core.Stack):
         # from NLB IP only
         asg.connections.allow_from_any_ipv4( 
             ec2.Port.tcp(1883), "Allow NLB access 1883 port of EC2 in Autoscaling Group")
-        
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(4369), "Allow emqx cluster distribution port 1")
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(4370), "Allow emqx cluster distribution port 2")
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.udp(4369), "Allow emqx cluster discovery port 1")
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.udp(4370), "Allow emqx cluster discovery port 2")
+
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(2379), "Allow emqx cluster discovery port (etcd)")
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(2380), "Allow emqx cluster discovery port (etcd)")
         asg.connections.allow_from(bastion,
             ec2.Port.tcp(22), "Allow SSH from the bastion only")
         
