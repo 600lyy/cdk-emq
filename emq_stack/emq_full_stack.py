@@ -73,6 +73,7 @@ class EmqFullStack(core.Stack):
             load_balancer_name="emq-nlb")
 
         listener = nlb.add_listener("port1883", port=1883)
+        listenerUI = nlb.add_listener("port80", port=80)
 
         # Create Autoscaling Group with desired 2*EC2 hosts
         asg = autoscaling.AutoScalingGroup(self, "emq-asg",
@@ -101,6 +102,8 @@ class EmqFullStack(core.Stack):
         asg.connections.allow_from_any_ipv4( 
             ec2.Port.tcp(1883), "Allow NLB access 1883 port of EC2 in Autoscaling Group")
         asg.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(18083), "Allow NLB access WEB UI")
+        asg.connections.allow_from_any_ipv4(
             ec2.Port.tcp(4369), "Allow emqx cluster distribution port 1")
         asg.connections.allow_from_any_ipv4(
             ec2.Port.tcp(4370), "Allow emqx cluster distribution port 2")
@@ -115,12 +118,15 @@ class EmqFullStack(core.Stack):
             ec2.Port.tcp(2380), "Allow emqx cluster discovery port (etcd)")
         asg.connections.allow_from(bastion,
             ec2.Port.tcp(22), "Allow SSH from the bastion only")
-        
         listener.add_targets("addTargetGroup",
             port=1883,
             targets=[asg])
-        
-    
+
+        # @todo we need ssl terminataion
+        # listenerUI.add_targets("addTargetGroup",
+        #     port=18083,
+        #     targets=[asg])
+
         """ db_mysql = rds.DatabaseInstance(self, "EMQ_MySQL_DB",
             engine=rds.DatabaseInstanceEngine.mysql(
                 version=rds.MysqlEngineVersion.VER_5_7_30),
