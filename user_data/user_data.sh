@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# ulimt fds
+#
+sudo bash -c 'echo "session required pam_limits.so" >> /etc/pam.d/common-session'
+sudo bash -c 'echo "*      soft    nofile      500000"  >> /etc/security/limits.conf'
+sudo bash -c 'echo "*      hard    nofile      500000"  >> /etc/security/limits.conf'
+
 # Install etcd
 sudo apt update
 sudo apt install -y etcd-server etcd-client
