@@ -10,7 +10,8 @@ from aws_cdk import aws_rds as rds
 
 
 linux_ami = ec2.GenericLinuxImage({
-    "eu-west-1": "ami-06fd78dc2f0b69910", # ubuntu 18.04 latest
+    #"eu-west-1": "ami-06fd78dc2f0b69910", # ubuntu 18.04 latest
+    "eu-west-1": "ami-09c60c18b634a5e00", # ubuntu 20.04 latest
     })
 
 with open("./user_data/user_data.sh") as f:
