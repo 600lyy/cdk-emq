@@ -6,7 +6,7 @@ with open("README.md") as fp:
 
 
 setuptools.setup(
-    name="cdk_emq",
+    name="emq_stack",
     version="0.0.1",
 
     description="Create a EMQ cluster with desired 2 nodes",
@@ -15,7 +15,7 @@ setuptools.setup(
 
     author="Andy Lu",
 
-    package_dir={"": "cdk_emq"},
+    package_dir={"": "emq_stack"},
     packages=setuptools.find_packages(where="emq_stack"),
 
     install_requires=[

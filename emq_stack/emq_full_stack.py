@@ -10,7 +10,8 @@ from aws_cdk import aws_rds as rds
 
 
 linux_ami = ec2.GenericLinuxImage({
-    "eu-west-1": "ami-06fd78dc2f0b69910", # ubuntu 18.04 latest
+    #"eu-west-1": "ami-06fd78dc2f0b69910", # ubuntu 18.04 latest
+    "eu-west-1": "ami-09c60c18b634a5e00", # ubuntu 20.04 latest
     })
 
 with open("./user_data/user_data.sh") as f:
@@ -53,7 +54,6 @@ class EmqFullStack(core.Stack):
         key_name = CfnParameter(self, "ssh key",
             type="String", default="key_ireland",
             description="Specify your SSH key").value_as_string
-    
          # Create Bastion Server
         bastion = ec2.BastionHostLinux(self, "Bastion",
             vpc=vpc,
@@ -73,6 +73,7 @@ class EmqFullStack(core.Stack):
             load_balancer_name="emq-nlb")
 
         listener = nlb.add_listener("port1883", port=1883)
+        listenerUI = nlb.add_listener("port80", port=80)
 
         # Create Autoscaling Group with desired 2*EC2 hosts
         asg = autoscaling.AutoScalingGroup(self, "emq-asg",
@@ -89,20 +90,43 @@ class EmqFullStack(core.Stack):
             max_capacity=4
             )
 
+        user_defined_tags = self.node.try_get_context("tags")
+
+        if user_defined_tags:
+            tags = user_defined_tags.split(' ')
+            core.Tags.of(asg).add(*tags)
+
         # NLB cannot associate with a security group therefore NLB object has no Connection object
         # Must modify manuall inbound rule of the newly created asg security group to allow access
         # from NLB IP only
         asg.connections.allow_from_any_ipv4( 
             ec2.Port.tcp(1883), "Allow NLB access 1883 port of EC2 in Autoscaling Group")
-        
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(18083), "Allow NLB access WEB UI")
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(4369), "Allow emqx cluster distribution port 1")
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(4370), "Allow emqx cluster distribution port 2")
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.udp(4369), "Allow emqx cluster discovery port 1")
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.udp(4370), "Allow emqx cluster discovery port 2")
+
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(2379), "Allow emqx cluster discovery port (etcd)")
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(2380), "Allow emqx cluster discovery port (etcd)")
         asg.connections.allow_from(bastion,
             ec2.Port.tcp(22), "Allow SSH from the bastion only")
-        
         listener.add_targets("addTargetGroup",
             port=1883,
             targets=[asg])
-        
-    
+
+        # @todo we need ssl terminataion
+        # listenerUI.add_targets("addTargetGroup",
+        #     port=18083,
+        #     targets=[asg])
+
         """ db_mysql = rds.DatabaseInstance(self, "EMQ_MySQL_DB",
             engine=rds.DatabaseInstanceEngine.mysql(
                 version=rds.MysqlEngineVersion.VER_5_7_30),
