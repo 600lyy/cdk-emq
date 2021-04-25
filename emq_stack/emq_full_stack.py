@@ -6,6 +6,8 @@ from aws_cdk import aws_autoscaling as autoscaling
 from aws_cdk.core import Duration, CfnParameter
 from aws_cdk.aws_autoscaling import HealthCheck
 from aws_cdk import aws_rds as rds
+from aws_cdk import aws_route53 as r53
+
 # from cdk_stack import AWS_ENV
 
 
@@ -17,6 +19,10 @@ linux_ami = ec2.GenericLinuxImage({
 with open("./user_data/user_data.sh") as f:
     user_data = f.read()
 
+with open("./user_data/loadgen_user_data.sh") as f:
+    loadgen_user_data = f.read()
+
+r53_zone_name = 'cdk_emqx_hosted_zone'
 
 class EmqFullStack(core.Stack):
 
@@ -24,6 +30,10 @@ class EmqFullStack(core.Stack):
         super().__init__(scope, construct_id, env=env, **kwargs)
         
         # The code that defines your stack goes here
+        if self.node.try_get_context("tags"):
+            self.user_defined_tags = self.node.try_get_context("tags").split(' ')
+        else:
+            self.user_defined_tags = None
 
         vpc = ec2.Vpc(self, "VPC_EMQ",
             max_azs=2,
@@ -45,21 +55,29 @@ class EmqFullStack(core.Stack):
             ],
             nat_gateways=2
             )
+        # Route53
+        int_zone = r53.PrivateHostedZone(self, r53_zone_name,
+                                         zone_name = 'int.emqx',
+                                         vpc = vpc
+        )
             
         # Define cfn parameters
         ec2_type = CfnParameter(self, "ec2-instance-type", 
-            type="String", default="t2.micro",
+            type="String", default="t3.micro",
             description="Specify the instance type you want").value_as_string
         
         key_name = CfnParameter(self, "ssh key",
             type="String", default="key_ireland",
             description="Specify your SSH key").value_as_string
+
+        sg = ec2.SecurityGroup(self, id = 'sg_int', vpc = vpc)
+
          # Create Bastion Server
         bastion = ec2.BastionHostLinux(self, "Bastion",
             vpc=vpc,
             subnet_selection=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),
             instance_name="BastionHostLinux",
-            instance_type=ec2.InstanceType(instance_type_identifier="t2.micro"))
+            instance_type=ec2.InstanceType(instance_type_identifier="t3.nano"))
 
         bastion.instance.instance.add_property_override("KeyName", key_name)
         bastion.connections.allow_from_any_ipv4(
@@ -82,19 +100,17 @@ class EmqFullStack(core.Stack):
             instance_type=ec2.InstanceType(
                 instance_type_identifier=ec2_type),
             machine_image=linux_ami,
+            security_group = sg,
             key_name=key_name,
             user_data=ec2.UserData.custom(user_data),
             health_check=HealthCheck.elb(grace=Duration.seconds(60)),
-            desired_capacity=2,
-            min_capacity=2,
+            desired_capacity=3,
+            min_capacity=3,
             max_capacity=4
             )
 
-        user_defined_tags = self.node.try_get_context("tags")
-
-        if user_defined_tags:
-            tags = user_defined_tags.split(' ')
-            core.Tags.of(asg).add(*tags)
+        if self.user_defined_tags:
+            core.Tags.of(asg).add(*self.user_defined_tags)
 
         # NLB cannot associate with a security group therefore NLB object has no Connection object
         # Must modify manuall inbound rule of the newly created asg security group to allow access
@@ -123,9 +139,27 @@ class EmqFullStack(core.Stack):
             targets=[asg])
 
         # @todo we need ssl terminataion
-        # listenerUI.add_targets("addTargetGroup",
-        #     port=18083,
-        #     targets=[asg])
+        listenerUI.add_targets("addTargetGroup",
+            port=18083,
+            targets=[asg])
+
+
+        lg_asg = autoscaling.AutoScalingGroup(self, "emq-loadgen",
+            vpc=vpc,
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE),
+            instance_type=ec2.InstanceType(
+                instance_type_identifier=ec2_type),
+            machine_image=linux_ami,
+            key_name=key_name,
+            user_data=ec2.UserData.custom(loadgen_user_data),
+            health_check=HealthCheck.elb(grace=Duration.seconds(60)),
+            desired_capacity=1,
+            min_capacity=1,
+            max_capacity=4
+            )
+
+        lg_asg.connections.allow_from(bastion,
+            ec2.Port.tcp(22), "Allow SSH from the bastion only")
 
         """ db_mysql = rds.DatabaseInstance(self, "EMQ_MySQL_DB",
             engine=rds.DatabaseInstanceEngine.mysql(
@@ -148,6 +182,43 @@ class EmqFullStack(core.Stack):
         asg_security_groups = asg.connections.security_groups
         for asg_sg in asg_security_groups:
             db_mysql.connections.allow_default_port_from(asg_sg, "EC2 Autoscaling Group access MySQL") """
-        
+
+        self.setup_etcd(vpc, int_zone, sg, key_name)
+
         core.CfnOutput(self, "Output",
             value=nlb.load_balancer_dns_name)
+        core.CfnOutput(self, "SSH Entrypoint",
+                       value=bastion.instance_public_ip)
+
+    def setup_etcd(self, vpc, zone, sg, key):
+        for n in range(0, 3):
+            # cdk bug?
+            (cloud_user_data, )= ec2.UserData.for_linux(),
+            cloud_user_data.add_commands('apt update',
+                                         'apt install -y etcd-server etcd-client',
+                                         "echo ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd%d.int.emqx:2380 >> /etc/default/etcd" % n,
+                                         'echo ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380 >> /etc/default/etcd',
+                                         'echo ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379 >> /etc/default/etcd',
+                                         "echo ETCD_ADVERTISE_CLIENT_URLS=http://etcd%d.int.emqx:2379 >> /etc/default/etcd" % n,
+                                         "echo ETCD_NAME=infra%d >> /etc/default/etcd" % n,
+                                         'echo ETCD_INITIAL_CLUSTER_STATE=new >> /etc/default/etcd',
+                                         'echo ETCD_INITIAL_CLUSTER_TOKEN=emqx-cluster-1 >> /etc/default/etcd',
+                                         'echo ETCD_INITIAL_CLUSTER="infra0=http://etcd0.int.emqx:2380,infra1=http://etcd1.int.emqx:2380,infra2=http://etcd2.int.emqx:2380" >> /etc/default/etcd',
+                                         'systemctl restart etcd'
+            )
+            ins = ec2.Instance(self, id = "etsd.%d" % n,
+                               instance_type=ec2.InstanceType(instance_type_identifier="t3.nano"),
+                               machine_image=linux_ami,
+                               user_data=cloud_user_data,
+                               security_group = sg,
+                               key_name=key,
+                               vpc = vpc
+            )
+
+            if self.user_defined_tags:
+                core.Tags.of(ins).add(*self.user_defined_tags)
+            r53.ARecord(self, id = "etcd%d.int.emqx" % n,
+                        record_name = "etcd%d.int.emqx" % n,
+                        zone = zone,
+                        target = r53.RecordTarget([ins.instance_private_ip])
+            )
