@@ -55,6 +55,7 @@ class EmqFullStack(core.Stack):
             ],
             nat_gateways=2
             )
+
         # Route53
         int_zone = r53.PrivateHostedZone(self, r53_zone_name,
                                          zone_name = 'int.emqx',
@@ -63,7 +64,7 @@ class EmqFullStack(core.Stack):
             
         # Define cfn parameters
         ec2_type = CfnParameter(self, "ec2-instance-type", 
-            type="String", default="t3.micro",
+            type="String", default="m5.xlarge",
             description="Specify the instance type you want").value_as_string
         
         key_name = CfnParameter(self, "ssh key",
@@ -86,7 +87,7 @@ class EmqFullStack(core.Stack):
         # Create NLB
         nlb = elb.NetworkLoadBalancer(self, "emq-elb",
             vpc=vpc,
-            internet_facing=True,
+            internet_facing=False,
             cross_zone_enabled=True,
             load_balancer_name="emq-nlb")
 
@@ -105,7 +106,7 @@ class EmqFullStack(core.Stack):
             user_data=ec2.UserData.custom(user_data),
             health_check=HealthCheck.elb(grace=Duration.seconds(60)),
             desired_capacity=3,
-            min_capacity=3,
+            min_capacity=2,
             max_capacity=4
             )
 
@@ -143,24 +144,6 @@ class EmqFullStack(core.Stack):
             port=18083,
             targets=[asg])
 
-
-        lg_asg = autoscaling.AutoScalingGroup(self, "emq-loadgen",
-            vpc=vpc,
-            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE),
-            instance_type=ec2.InstanceType(
-                instance_type_identifier=ec2_type),
-            machine_image=linux_ami,
-            key_name=key_name,
-            user_data=ec2.UserData.custom(loadgen_user_data),
-            health_check=HealthCheck.elb(grace=Duration.seconds(60)),
-            desired_capacity=1,
-            min_capacity=1,
-            max_capacity=4
-            )
-
-        lg_asg.connections.allow_from(bastion,
-            ec2.Port.tcp(22), "Allow SSH from the bastion only")
-
         """ db_mysql = rds.DatabaseInstance(self, "EMQ_MySQL_DB",
             engine=rds.DatabaseInstanceEngine.mysql(
                 version=rds.MysqlEngineVersion.VER_5_7_30),
@@ -185,10 +168,38 @@ class EmqFullStack(core.Stack):
 
         self.setup_etcd(vpc, int_zone, sg, key_name)
 
+        self.setup_loadgen(2, vpc, int_zone, sg, key_name)
+
         core.CfnOutput(self, "Output",
             value=nlb.load_balancer_dns_name)
         core.CfnOutput(self, "SSH Entrypoint",
                        value=bastion.instance_public_ip)
+
+    def setup_loadgen(self, N, vpc, zone, sg, key):
+        for n in range(0, N):
+            name = "loadgen%d" % n
+            lg_vm = ec2.Instance(self, id = name,
+                                 instance_type=ec2.InstanceType(instance_type_identifier="m5.xlarge"),
+                                 machine_image=linux_ami,
+                                 user_data = ec2.UserData.custom(loadgen_user_data),
+                                 security_group = sg,
+                                 key_name=key,
+                                 vpc = vpc,
+                                 source_dest_check = False
+            )
+            i=1
+            for net in vpc.private_subnets:
+                net.add_route(id=name+str(i),
+                              router_id = lg_vm.instance_id,
+                              router_type = ec2.RouterType.INSTANCE,
+                              destination_cidr_block = "192.168.%d.0/24" % n)
+                i+=1
+
+            r53.ARecord(self, id = name + '.int.emqx',
+                        record_name = name + '.int.emqx',
+                        zone = zone,
+                        target = r53.RecordTarget([lg_vm.instance_private_ip])
+            )
 
     def setup_etcd(self, vpc, zone, sg, key):
         for n in range(0, 3):
