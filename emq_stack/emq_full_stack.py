@@ -82,7 +82,6 @@ class EmqFullStack(core.Stack):
                                        vpc=vpc,
                                        subnet_selection=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),
                                        instance_name="BastionHostLinux",
-                                       user_data=ec2.user_data.for_linux().add_commands("sudo yum install tmux -y"),
                                        instance_type=ec2.InstanceType(instance_type_identifier="t3.nano"))
 
         bastion.instance.instance.add_property_override("KeyName", key_name)
@@ -178,7 +177,7 @@ class EmqFullStack(core.Stack):
         #self.setup_monitoring()
 
         self.setup_etcd(vpc, int_zone, sg, key_name)
-        self.setup_loadgen(4, vpc, int_zone, sg, key_name)
+        self.setup_loadgen(4, vpc, int_zone, sg, key_name, nlb.load_balancer_dns_name)
 
         core.CfnOutput(self, "Output",
             value=nlb.load_balancer_dns_name)
@@ -189,12 +188,23 @@ class EmqFullStack(core.Stack):
 
         )
 
-    def setup_loadgen(self, N, vpc, zone, sg, key):
+    def setup_loadgen(self, N, vpc, zone, sg, key, target):
         for n in range(0, N):
             name = "loadgen%d" % n
             bootScript = ec2.UserData.custom(loadgen_user_data)
             configIps = ec2.UserData.for_linux()
             configIps.add_commands("for x in $(seq 2 250); do ip addr add 192.168.%d.$x dev ens5; done" % n)
+            runscript = ec2.UserData.for_linux()
+            runscript.add_commands("""cat << EOF > /root/emqtt_bench/run.sh
+            #!/bin/bash
+            export nodeid=%d
+            export target=%s
+            ulimit -n 1000000
+            ipaddrs=`for n in $(seq 2 13); do printf "192.168.$nodeid.%d," $n; done `
+            _build/default/bin/emqtt_bench sub -h $target -t "root/%c/1/+/abc/#" -c 500000 --prefix "prefix$nodeid" --ifaddr  ${ipaddrs%","} -i 5
+            EOF
+            """ % (n, target)
+            )
             multipartUserData = ec2.MultipartUserData()
             multipartUserData.add_part(ec2.MultipartBody.from_user_data(bootScript))
             multipartUserData.add_part(ec2.MultipartBody.from_user_data(configIps))
