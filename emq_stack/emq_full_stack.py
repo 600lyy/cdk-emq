@@ -1,12 +1,13 @@
 # EMQ Full Stack
-from aws_cdk import core
-from aws_cdk import aws_ec2 as ec2
+from aws_cdk import (core, aws_ec2 as ec2, aws_ecs as ecs,
+                     aws_ecs_patterns as ecs_patterns)
 from aws_cdk import aws_elasticloadbalancingv2 as elb
 from aws_cdk import aws_autoscaling as autoscaling
 from aws_cdk.core import Duration, CfnParameter
 from aws_cdk.aws_autoscaling import HealthCheck
 from aws_cdk import aws_rds as rds
 from aws_cdk import aws_route53 as r53
+from aws_cdk import aws_ecs as ecs
 
 # from cdk_stack import AWS_ENV
 
@@ -55,16 +56,18 @@ class EmqFullStack(core.Stack):
             ],
             nat_gateways=2
             )
+        self.vpc = vpc
 
         # Route53
         int_zone = r53.PrivateHostedZone(self, r53_zone_name,
                                          zone_name = 'int.emqx',
                                          vpc = vpc
         )
-            
+
+        self.int_zone = int_zone
         # Define cfn parameters
         ec2_type = CfnParameter(self, "ec2-instance-type", 
-            type="String", default="m5.xlarge",
+            type="String", default="m5.2xlarge",
             description="Specify the instance type you want").value_as_string
         
         key_name = CfnParameter(self, "ssh key",
@@ -72,13 +75,15 @@ class EmqFullStack(core.Stack):
             description="Specify your SSH key").value_as_string
 
         sg = ec2.SecurityGroup(self, id = 'sg_int', vpc = vpc)
+        self.sg = sg
 
          # Create Bastion Server
         bastion = ec2.BastionHostLinux(self, "Bastion",
-            vpc=vpc,
-            subnet_selection=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),
-            instance_name="BastionHostLinux",
-            instance_type=ec2.InstanceType(instance_type_identifier="t3.nano"))
+                                       vpc=vpc,
+                                       subnet_selection=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),
+                                       instance_name="BastionHostLinux",
+                                       user_data=ec2.user_data.for_linux().add_commands("sudo yum install tmux -y"),
+                                       instance_type=ec2.InstanceType(instance_type_identifier="t3.nano"))
 
         bastion.instance.instance.add_property_override("KeyName", key_name)
         bastion.connections.allow_from_any_ipv4(
@@ -90,6 +95,8 @@ class EmqFullStack(core.Stack):
             internet_facing=False,
             cross_zone_enabled=True,
             load_balancer_name="emq-nlb")
+
+        self.nlb = nlb
 
         listener = nlb.add_listener("port1883", port=1883)
         listenerUI = nlb.add_listener("port80", port=80)
@@ -128,13 +135,15 @@ class EmqFullStack(core.Stack):
             ec2.Port.udp(4369), "Allow emqx cluster discovery port 1")
         asg.connections.allow_from_any_ipv4(
             ec2.Port.udp(4370), "Allow emqx cluster discovery port 2")
-
+        asg.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(8081), "Allow emqx cluster dashboard access")
         asg.connections.allow_from_any_ipv4(
             ec2.Port.tcp(2379), "Allow emqx cluster discovery port (etcd)")
         asg.connections.allow_from_any_ipv4(
             ec2.Port.tcp(2380), "Allow emqx cluster discovery port (etcd)")
         asg.connections.allow_from(bastion,
             ec2.Port.tcp(22), "Allow SSH from the bastion only")
+
         listener.add_targets("addTargetGroup",
             port=1883,
             targets=[asg])
@@ -166,22 +175,33 @@ class EmqFullStack(core.Stack):
         for asg_sg in asg_security_groups:
             db_mysql.connections.allow_default_port_from(asg_sg, "EC2 Autoscaling Group access MySQL") """
 
-        self.setup_etcd(vpc, int_zone, sg, key_name)
+        #self.setup_monitoring()
 
-        self.setup_loadgen(2, vpc, int_zone, sg, key_name)
+        self.setup_etcd(vpc, int_zone, sg, key_name)
+        self.setup_loadgen(4, vpc, int_zone, sg, key_name)
 
         core.CfnOutput(self, "Output",
             value=nlb.load_balancer_dns_name)
         core.CfnOutput(self, "SSH Entrypoint",
                        value=bastion.instance_public_ip)
+        core.CfnOutput(self, "SSH cmds",
+                       value="ssh -A -l ec2-user %s -L8888:%s.com:80" % (bastion.instance_public_ip, nlb.load_balancer_dns_name)
+
+        )
 
     def setup_loadgen(self, N, vpc, zone, sg, key):
         for n in range(0, N):
             name = "loadgen%d" % n
+            bootScript = ec2.UserData.custom(loadgen_user_data)
+            configIps = ec2.UserData.for_linux()
+            configIps.add_commands("for x in $(seq 2 250); do ip addr add 192.168.%d.$x dev ens5; done" % n)
+            multipartUserData = ec2.MultipartUserData()
+            multipartUserData.add_part(ec2.MultipartBody.from_user_data(bootScript))
+            multipartUserData.add_part(ec2.MultipartBody.from_user_data(configIps))
             lg_vm = ec2.Instance(self, id = name,
                                  instance_type=ec2.InstanceType(instance_type_identifier="m5.xlarge"),
                                  machine_image=linux_ami,
-                                 user_data = ec2.UserData.custom(loadgen_user_data),
+                                 user_data = multipartUserData,
                                  security_group = sg,
                                  key_name=key,
                                  vpc = vpc,
@@ -200,6 +220,32 @@ class EmqFullStack(core.Stack):
                         zone = zone,
                         target = r53.RecordTarget([lg_vm.instance_private_ip])
             )
+
+    def setup_monitoring(self):
+        vpc = self.vpc
+
+        cluster = ecs.Cluster(self, "Monitoring", vpc=vpc)
+
+        ecs_patterns.ApplicationLoadBalancedFargateService(
+            self, "EMQXMonitoring",
+            cluster=cluster,            # Required
+            cpu=256,                    # Default is 256
+            desired_count=1,            # Default is 1
+            task_image_options =
+            ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
+                image = ecs.ContainerImage.from_registry("grafana/grafana"),
+                enable_logging = False,
+                container_port = 3000
+            ),
+            memory_limit_mib=512,      # Default is 512
+            security_groups = [self.sg],
+            #load_balancer = self.nlb,
+            domain_name = 'grafana.int.emqx',
+            domain_zone = self.int_zone,
+            public_load_balancer=False)  # Default is False
+
+        ecs.FargateService(self, "prometheus")
+
 
     def setup_etcd(self, vpc, zone, sg, key):
         for n in range(0, 3):
