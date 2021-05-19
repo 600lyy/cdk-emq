@@ -9,6 +9,7 @@ from aws_cdk import aws_rds as rds
 from aws_cdk import aws_route53 as r53
 from aws_cdk import aws_ecs as ecs
 from aws_cdk import aws_elasticloadbalancingv2_targets as target
+from base64 import b64encode
 # from cdk_stack import AWS_ENV
 
 
@@ -276,8 +277,94 @@ EOF
 
         cluster = ecs.Cluster(self, "Monitoring", vpc=vpc)
 
-        alb = ecs_patterns.ApplicationLoadBalancedFargateService(
-            self, "EMQXMonitoring",
+        cfgVolName = 'prom-cfg'
+        task = ecs.FargateTaskDefinition(self,
+                                         id = 'prometheus',
+                                         cpu = 256,
+                                         memory_limit_mib = 512,
+                                         volumes = [ecs.Volume(name = cfgVolName)]
+        )
+
+        pcfg = """
+# Sample config for Prometheus.
+
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+  # scrape_timeout is set to the global default (10s).
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+      monitor: 'example'
+
+# Load and evaluate rules in this file every 'evaluation_interval' seconds.
+rule_files:
+  # - "first.rules"
+  # - "second.rules"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+    scrape_timeout: 5s
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: node
+    # If node-exporter is installed, grab stats about the local
+    # machine by default.
+    static_configs:
+      - targets: ['emqx-0.int.emqx:9100']
+
+        """
+        c_prometheus = task.add_container('prometheus',
+                                          image=ecs.ContainerImage.from_registry('grafana/grafana'),
+                                          port_mappings = [ecs.PortMapping(container_port=9090)]
+        )
+
+        c_bash = task.add_container('prometheus-config', image=ecs.ContainerImage.from_registry('bash'),
+                                    environment = {'DATA' : str(b64encode(pcfg.encode()))},
+                                    essential = False,
+                                    command = [
+                                        '-c',
+                                        'echo $DATA | base64 -d - | tee /etc/prometheus/prometheus.yml'
+                                    ],
+        )
+
+        mp = ecs.MountPoint(container_path = '/etc/prometheus', read_only = False, source_volume = cfgVolName)
+
+        c_prometheus.add_mount_points(mp)
+        c_bash.add_mount_points(mp)
+        c_prometheus.add_container_dependencies(ecs.ContainerDependency(container=c_bash,
+                                                                        condition = ecs.ContainerDependencyCondition.COMPLETE))
+
+
+
+        prometheus_alb = ecs_patterns.ApplicationLoadBalancedFargateService(
+            self, "EMQXMonitoringProm",
+            cluster=cluster,            # Required
+            cpu=256,                    # Default is 256
+            desired_count=1,            # Default is 1
+            task_definition = task,
+            memory_limit_mib=512,      # Default is 512
+            security_groups = [self.sg],
+            #load_balancer = self.nlb,
+            domain_name = 'prometheus.int.emqx',
+            domain_zone = self.int_zone,
+            public_load_balancer=False)  # Default is False
+        self.prometheus_lb = prometheus_alb.load_balancer.load_balancer_dns_name
+
+        grafana_alb = ecs_patterns.ApplicationLoadBalancedFargateService(
+            self, "EMQXMonitoringGrafana",
             cluster=cluster,            # Required
             cpu=256,                    # Default is 256
             desired_count=1,            # Default is 1
@@ -293,7 +380,9 @@ EOF
             domain_name = 'grafana.int.emqx',
             domain_zone = self.int_zone,
             public_load_balancer=False)  # Default is False
-        self.grafana_lb=alb.load_balancer.load_balancer_dns_name
+        self.grafana_lb = grafana_alb.load_balancer.load_balancer_dns_name
+
+
 
     def setup_emqx(self, N, vpc, zone, sg, key):
         self.emqx_vms = []
