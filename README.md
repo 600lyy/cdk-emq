@@ -25,7 +25,7 @@ Once the virtualenv is activated, you can install the required dependencies.
 
 ``` sh
 $ pip install -r requirements.txt
-$ pip install aws_cdk.aws_ec2 aws_cdk.aws_ecs aws_cdk.aws_ecs_patterns
+$ pip install aws_cdk.aws_ec2 aws_cdk.aws_ecs aws_cdk.aws_ecs_patterns aws_cdk.aws_elasticloadbalancingv2_targets.InstanceTarget
 ```
 
 ## Usage

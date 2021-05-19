@@ -10,7 +10,7 @@ echo "fs.nr_open=8000000" >>  /etc/sysctl.d/99-sysctl.conf
 echo 'net.ipv4.ip_local_port_range="1025 65534"' >>  /etc/sysctl.d/99-sysctl.conf
 
 apt update
-apt install -y erlang make
+apt install -y erlang make prometheus
 
 cd /root/
 git clone https://github.com/emqx/emqtt_bench
