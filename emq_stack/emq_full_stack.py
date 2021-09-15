@@ -1,17 +1,20 @@
 # EMQ Full Stack
-from aws_cdk import (core, aws_ec2 as ec2, aws_ecs as ecs,
+from aws_cdk import (core as cdk, aws_ec2 as ec2, aws_ecs as ecs,
+                     core as core,
+                     aws_logs as aws_logs,
+                     aws_elasticloadbalancingv2 as elb,
+                     aws_autoscaling as autoscaling,
+                     aws_elasticloadbalancingv2_targets as target,
+                     aws_route53 as r53,
+                     aws_route53_targets as r53_targets,
+                     aws_rds as rds,
+                     aws_elasticloadbalancingv2 as elbv2,
                      aws_ecs_patterns as ecs_patterns)
-from aws_cdk import aws_elasticloadbalancingv2 as elb
-from aws_cdk import aws_autoscaling as autoscaling
 from aws_cdk.core import Duration, CfnParameter
 from aws_cdk.aws_autoscaling import HealthCheck
-from aws_cdk import aws_rds as rds
-from aws_cdk import aws_route53 as r53
-from aws_cdk import aws_ecs as ecs
-from aws_cdk import aws_elasticloadbalancingv2_targets as target
 from base64 import b64encode
-# from cdk_stack import AWS_ENV
 
+# from cdk_stack import AWS_ENV
 
 ####################
 # Glboal Vars     #
@@ -24,6 +27,8 @@ loadgen_ins_type = 't3a.micro'
 # Prod
 #loadgen_ins_type = 'm5n.xlarge'
 numLg=1
+
+loadbalancer_dnsname='lb.int.emqx'
 ####################
 
 linux_ami = ec2.GenericLinuxImage({
@@ -95,15 +100,14 @@ class EmqFullStack(core.Stack):
 
         sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(22), 'SSH frm anywhere')
         sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(1883), 'MQTT TCP Port')
+        sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(8883), 'MQTT TCP/TLS Port')
+        sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.udp(14567), 'MQTT Quic Port')
         sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(18083), 'WEB UI')
         sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(4369), 'EMQX dist port 1')
         sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(4370), 'EMQX dist port 2')
         sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(8081), 'EMQX dashboard')
         sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(2379), 'etcd client port')
         sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(2380), 'etcd peer port')
-        sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(9090), 'prometheus')
-        sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(9100), 'prometheus node exporter')
-
 
          # Create Bastion Server
         bastion = ec2.BastionHostLinux(self, "Bastion",
@@ -119,13 +123,21 @@ class EmqFullStack(core.Stack):
         # Create NLB
         nlb = elb.NetworkLoadBalancer(self, "emq-elb",
                                       vpc=vpc,
-                                      internet_facing=False,
+                                      internet_facing=False, 
                                       cross_zone_enabled=True,
                                       load_balancer_name="emq-nlb")
+
+        r53.ARecord(self, "AliasRecord",
+                    zone = int_zone,
+                    record_name = loadbalancer_dnsname,
+                    target = r53.RecordTarget.from_alias(r53_targets.LoadBalancerTarget(nlb))
+                    )
 
         self.nlb = nlb
 
         listener = nlb.add_listener("port1883", port=1883)
+        listenerTLS = nlb.add_listener("port8883", port=8883) # TLS, emqx terminataion
+        listenerQuic = nlb.add_listener("port14567", port=14567, protocol=elbv2.Protocol.UDP)
         listenerUI = nlb.add_listener("port80", port=80)
 
         # Create Autoscaling Group with desired 2*EC2 hosts
@@ -178,12 +190,21 @@ class EmqFullStack(core.Stack):
                              targets=
                                  [ target.InstanceTarget(x)
                                    for x in self.emqx_vms])
-
-
         # @todo we need ssl terminataion
         listenerUI.add_targets('ec2',
                                port=18083,
                                targets=[ target.InstanceTarget(x)
+                                   for x in self.emqx_vms])
+
+        listenerQuic.add_targets('ec2',
+                                 port=14567,
+                                 protocol=elbv2.Protocol.UDP,
+                                 targets=[ target.InstanceTarget(x)
+                                   for x in self.emqx_vms])
+
+        listenerTLS.add_targets('ec2',
+                                port=8883,
+                                targets=[ target.InstanceTarget(x)
                                    for x in self.emqx_vms])
 
         """ db_mysql = rds.DatabaseInstance(self, "EMQ_MySQL_DB",
@@ -220,8 +241,8 @@ class EmqFullStack(core.Stack):
         core.CfnOutput(self, "SSH Entrypoint",
                        value=bastion.instance_public_ip)
         core.CfnOutput(self, "SSH cmds",
-                       value="ssh -A -l ec2-user %s -L8888:%s:80 -L 9999:%s:80"
-                       % (bastion.instance_public_ip, nlb.load_balancer_dns_name, self.grafana_lb)
+                       value="ssh -A -l ec2-user %s -L8888:%s:80 -L 9999:%s:80 -L 13000:%s:3000"
+                       % (bastion.instance_public_ip, nlb.load_balancer_dns_name, self.mon_lb, self.mon_lb)
         )
 
     def setup_loadgen(self, N, vpc, zone, sg, key, target):
@@ -274,114 +295,100 @@ EOF
 
     def setup_monitoring(self):
         vpc = self.vpc
+        sg = self.sg
+        nlb = self.nlb
+        with open("./user_data/prometheus.yml") as f:
+            prometheus_config = f.read()
+
+        sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(9090), 'prometheus')
+        sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(9100), 'prometheus node exporter')
+        sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(9091), 'prometheus pushgateway')
+        sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(3000), 'grafana')
 
         cluster = ecs.Cluster(self, "Monitoring", vpc=vpc)
-
-        cfgVolName = 'prom-cfg'
         task = ecs.FargateTaskDefinition(self,
-                                         id = 'prometheus',
-                                         cpu = 256,
-                                         memory_limit_mib = 512,
-                                         volumes = [ecs.Volume(name = cfgVolName)]
+                                         id = 'MonitorTask',
+                                         cpu = 512,
+                                         memory_limit_mib = 2048
+                                         #volumes = [ecs.Volume(name = cfgVolName)]
+               )
+        task.add_volume(name = 'prom_config')
+        c_config = task.add_container('config-prometheus',
+                                       image=ecs.ContainerImage.from_registry('bash'),
+                                       essential=False,
+                                       logging = ecs.LogDriver.aws_logs(stream_prefix="mon_config_prometheus",
+                                                                        log_retention = aws_logs.RetentionDays.ONE_DAY
+                                       ),
+                                       command = [ "-c",
+                                                   "echo $DATA | base64 -d - | tee /tmp/private/prometheus.yml"
+                                                 ],
+                                       environment = {'DATA' : cdk.Fn.base64(prometheus_config)}
+
         )
-
-        pcfg = """
-# Sample config for Prometheus.
-
-global:
-  scrape_interval:     15s # By default, scrape targets every 15 seconds.
-  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
-  # scrape_timeout is set to the global default (10s).
-
-  # Attach these labels to any time series or alerts when communicating with
-  # external systems (federation, remote storage, Alertmanager).
-  external_labels:
-      monitor: 'example'
-
-# Load and evaluate rules in this file every 'evaluation_interval' seconds.
-rule_files:
-  # - "first.rules"
-  # - "second.rules"
-
-# A scrape configuration containing exactly one endpoint to scrape:
-# Here it's Prometheus itself.
-scrape_configs:
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
-  - job_name: 'prometheus'
-
-    # Override the global default and scrape targets from this job every 5 seconds.
-    scrape_interval: 5s
-    scrape_timeout: 5s
-
-    # metrics_path defaults to '/metrics'
-    # scheme defaults to 'http'.
-
-    static_configs:
-      - targets: ['localhost:9090']
-
-  - job_name: node
-    # If node-exporter is installed, grab stats about the local
-    # machine by default.
-    static_configs:
-      - targets: ['emqx-0.int.emqx:9100']
-
-        """
+        c_config.add_mount_points(ecs.MountPoint(read_only = False, container_path='/tmp/private', source_volume='prom_config'))
         c_prometheus = task.add_container('prometheus',
-                                          image=ecs.ContainerImage.from_registry('grafana/grafana'),
-                                          port_mappings = [ecs.PortMapping(container_port=9090)]
+                                          essential=False,
+                                          image=ecs.ContainerImage.from_registry('prom/prometheus'),
+                                          port_mappings = [ecs.PortMapping(container_port=9090)],
+                                          command = [
+                                              "--config.file=/etc/prometheus/private/prometheus.yml",
+                                              "--storage.tsdb.path=/prometheus",
+                                              "--web.console.libraries=/usr/share/prometheus/console_libraries",
+                                              "--web.console.templates=/usr/share/prometheus/consoles"
+                                          ],
+                                          logging = ecs.LogDriver.aws_logs(stream_prefix="mon_prometheus",
+                                                                        log_retention = aws_logs.RetentionDays.ONE_DAY
+                                          ),
+
+        )
+        c_prometheus.add_mount_points(ecs.MountPoint(read_only = False, container_path='/etc/prometheus/private', source_volume='prom_config'))
+        c_prometheus.add_container_dependencies(ecs.ContainerDependency(container=c_config, condition=ecs.ContainerDependencyCondition.COMPLETE))
+
+
+        c_pushgateway = task.add_container('pushgateway',
+                                           essential=False,
+                                          image=ecs.ContainerImage.from_registry('prom/pushgateway'),
+                                          port_mappings = [ecs.PortMapping(container_port=9091)]
         )
 
-        c_bash = task.add_container('prometheus-config', image=ecs.ContainerImage.from_registry('bash'),
-                                    environment = {'DATA' : str(b64encode(pcfg.encode()))},
-                                    essential = False,
-                                    command = [
-                                        '-c',
-                                        'echo $DATA | base64 -d - | tee /etc/prometheus/prometheus.yml'
-                                    ],
+        c_grafana = task.add_container('grafana',
+                                       essential=True,
+                                       image=ecs.ContainerImage.from_registry('grafana/grafana'),
+                                       port_mappings = [ecs.PortMapping(container_port=3000)]
         )
 
-        mp = ecs.MountPoint(container_path = '/etc/prometheus', read_only = False, source_volume = cfgVolName)
+        service = ecs.FargateService(self, "EMQXMonitoring",
+                                     security_group = self.sg,
+                                     cluster = cluster,
+                                     task_definition = task,
+                                     desired_count = 1,
+                                     assign_public_ip = True
 
-        c_prometheus.add_mount_points(mp)
-        c_bash.add_mount_points(mp)
-        c_prometheus.add_container_dependencies(ecs.ContainerDependency(container=c_bash,
-                                                                        condition = ecs.ContainerDependencyCondition.COMPLETE))
+        )
 
+        listenerGrafana = nlb.add_listener('grafana', port = 3000);
+        listenerPrometheus = nlb.add_listener('prometheus', port = 9090);
+        listenerPushGateway = nlb.add_listener('pushgateway', port = 9091);
 
+        listenerGrafana.add_targets(id = 'grafana', port=3000, targets = [service.load_balancer_target(
+            container_name="grafana",
+            container_port=3000
+        )])
+        listenerPrometheus.add_targets(id = 'prometheus', port=9090, targets=[service.load_balancer_target(
+            container_name="prometheus",
+            container_port=9090
+        )])
 
-        prometheus_alb = ecs_patterns.ApplicationLoadBalancedFargateService(
-            self, "EMQXMonitoringProm",
-            cluster=cluster,            # Required
-            cpu=256,                    # Default is 256
-            desired_count=1,            # Default is 1
-            task_definition = task,
-            memory_limit_mib=512,      # Default is 512
-            security_groups = [self.sg],
-            #load_balancer = self.nlb,
-            domain_name = 'prometheus.int.emqx',
-            domain_zone = self.int_zone,
-            public_load_balancer=False)  # Default is False
-        self.prometheus_lb = prometheus_alb.load_balancer.load_balancer_dns_name
+        listenerPushGateway.add_targets(id = 'pushgateway', port=9091, targets=[service.load_balancer_target(
+            container_name="pushgateway",
+            container_port=9091
+        )]) ,
 
-        grafana_alb = ecs_patterns.ApplicationLoadBalancedFargateService(
-            self, "EMQXMonitoringGrafana",
-            cluster=cluster,            # Required
-            cpu=256,                    # Default is 256
-            desired_count=1,            # Default is 1
-            task_image_options =
-            ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
-                image = ecs.ContainerImage.from_registry("grafana/grafana"),
-                enable_logging = False,
-                container_port = 3000
-            ),
-            memory_limit_mib=512,      # Default is 512
-            security_groups = [self.sg],
-            #load_balancer = self.nlb,
-            domain_name = 'grafana.int.emqx',
-            domain_zone = self.int_zone,
-            public_load_balancer=False)  # Default is False
-        self.grafana_lb = grafana_alb.load_balancer.load_balancer_dns_name
-
+        self.mon_lb = loadbalancer_dnsname
+        core.CfnOutput(self, "Monitoring Grafana",
+                       value = "%s:%d" % (self.mon_lb, 3000))
+        core.CfnOutput(self, "Monitoring Prometheus",
+                       value = "%s:%d" % (self.mon_lb, 9090))
 
 
     def setup_emqx(self, N, vpc, zone, sg, key):
