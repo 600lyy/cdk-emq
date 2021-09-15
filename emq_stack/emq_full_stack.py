@@ -27,6 +27,8 @@ loadgen_ins_type = 't3a.micro'
 # Prod
 #loadgen_ins_type = 'm5n.xlarge'
 numLg=1
+
+loadbalancer_dnsname='lb.int.emqx'
 ####################
 
 linux_ami = ec2.GenericLinuxImage({
@@ -127,7 +129,7 @@ class EmqFullStack(core.Stack):
 
         r53.ARecord(self, "AliasRecord",
                     zone = int_zone,
-                    record_name = "lb.int.emqx",
+                    record_name = loadbalancer_dnsname,
                     target = r53.RecordTarget.from_alias(r53_targets.LoadBalancerTarget(nlb))
                     )
 
@@ -239,8 +241,8 @@ class EmqFullStack(core.Stack):
         core.CfnOutput(self, "SSH Entrypoint",
                        value=bastion.instance_public_ip)
         core.CfnOutput(self, "SSH cmds",
-                       value="ssh -A -l ec2-user %s -L8888:%s:80 -L 9999:%s:80"
-                       % (bastion.instance_public_ip, nlb.load_balancer_dns_name, self.mon_lb)
+                       value="ssh -A -l ec2-user %s -L8888:%s:80 -L 9999:%s:80 -L 13000:%s:3000"
+                       % (bastion.instance_public_ip, nlb.load_balancer_dns_name, self.mon_lb, self.mon_lb)
         )
 
     def setup_loadgen(self, N, vpc, zone, sg, key, target):
@@ -382,7 +384,7 @@ EOF
             container_port=9091
         )]) ,
 
-        self.mon_lb = nlb.load_balancer_dns_name
+        self.mon_lb = loadbalancer_dnsname
         core.CfnOutput(self, "Monitoring Grafana",
                        value = "%s:%d" % (self.mon_lb, 3000))
         core.CfnOutput(self, "Monitoring Prometheus",

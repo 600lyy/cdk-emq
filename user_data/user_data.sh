@@ -57,13 +57,14 @@ sudo apt install ./emqx.deb
 
 sudo bash -c 'echo "## ========= cloud user_data start  ===========##" >> /etc/emqx/emqx.conf'
 sudo bash -c 'echo "node.name = emqx@`hostname -f`" >> /etc/emqx/emqx.conf'
-## MCAST cluster.discovery
-#sudo bash -c 'echo "cluster.discovery = mcast" >> /etc/emqx/emqx.conf'
-#sudo bash -c 'echo "cluster.mcast.addr = 239.255.255.250" >> /etc/emqx/emqx.conf'
+cat <<EOF >> /etc/emqx/emqx.conf
+cluster.discovery = etcd
+cluster.etcd.server = http://etcd0.int.emqx:2379
+listener.tcp.external.max_conn_rate = 5000
+listener.tcp.external.acceptors = 128
+## ========= cloud user_data end  ===========##
+EOF
 
-### ETCD cluster.discovery
-sudo bash -c 'echo "cluster.discovery = etcd" >> /etc/emqx/emqx.conf'
-sudo bash -c 'echo "cluster.etcd.server = http://etcd0.int.emqx:2379" >> /etc/emqx/emqx.conf'
-sudo bash -c 'echo "prometheus.push.gateway.server = http://lb-int-emqx:9091" >> /etc/emqx/emqx.conf'
-sudo bash -c 'echo "## ========= cloud user_data end  ===========##" >> /etc/emqx/emqx.conf'
+echo "prometheus.push.gateway.server = http://lb.int.emqx:9091" >> /etc/emqx/plugins/emqx_prometheus.conf
+echo "{emqx_prometheus, true}." >> /var/lib/emqx/loaded_plugins
 sudo emqx start

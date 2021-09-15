@@ -33,6 +33,8 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9091"]
 
-  - job_name: "emqx node"
+  - job_name: "emqx node exporter"
     static_configs:
-      - targets: ["emqx-0.int.emqx:9100", "emqx-1.int.emqx:9100", "emqx-2.int.emqx:9100"]
+      - targets: ["emqx-0.int.emqx:9100", "emqx-1.int.emqx:9100", "emqx-2.int.emqx:9100",
+                  "loadgen-1.int.emqx:9100", "loadgen-2.int.emqx:9100", "loadgen-3.int.emqx:9100"
+                  ]
